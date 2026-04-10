@@ -1,9 +1,20 @@
 import streamlit as st
 import joblib
 import pandas as pd
+import numpy as np
+import plotly.graph_objects as go
 
 # cargar modelo
 model = joblib.load('model.pkl')
+
+# límites operativos (basados en condiciones sin falla)
+limits = {
+    'Torque [Nm]': (23.6, 54.8),
+    'Tool wear [min]': (9.0, 204.0),
+    'Air temperature [K]': (297.1, 303.5),
+    'Process temperature [K]': (307.7, 312.5),
+    'Rotational speed [rpm]': (1339, 1863)
+}
 
 # título e introducción
 st.title("Machine Failure Risk Predictor")
@@ -36,7 +47,7 @@ if st.button("Predict"):
 
     prob = model.predict_proba(input_data)[0][1]
 
-    # resultado tipo KPI
+    # KPI
     st.metric(label="Failure Probability", value=f"{prob:.2%}")
 
     # interpretación de riesgo
@@ -46,6 +57,64 @@ if st.button("Predict"):
         st.warning("Medium Risk – Monitor conditions closely")
     else:
         st.error("High Risk – Immediate attention recommended")
+
+    # -----------------------------
+    # SPC: Torque Control Chart
+    # -----------------------------
+    st.markdown("### Torque Control Chart (SPC)")
+
+    # datos simulados
+    torque_data = np.random.normal(loc=40, scale=5, size=50)
+
+    lower, upper = limits['Torque [Nm]']
+
+    # color del punto según condición
+    if torque < lower or torque > upper:
+        point_color = "red"
+    else:
+        point_color = "green"
+
+    fig = go.Figure()
+
+    # datos históricos
+    fig.add_trace(go.Scatter(
+        y=torque_data,
+        mode='lines+markers',
+        name='Historical Data'
+    ))
+
+    # límite superior
+    fig.add_trace(go.Scatter(
+        y=[upper]*len(torque_data),
+        mode='lines',
+        name='Upper Limit',
+        line=dict(dash='dash')
+    ))
+
+    # límite inferior
+    fig.add_trace(go.Scatter(
+        y=[lower]*len(torque_data),
+        mode='lines',
+        name='Lower Limit',
+        line=dict(dash='dash')
+    ))
+
+    # punto actual
+    fig.add_trace(go.Scatter(
+        y=[torque],
+        x=[len(torque_data)],
+        mode='markers',
+        name='Current Value',
+        marker=dict(size=12, color=point_color)
+    ))
+
+    fig.update_layout(
+        title="Torque SPC Monitoring",
+        xaxis_title="Sample",
+        yaxis_title="Torque [Nm]"
+    )
+
+    st.plotly_chart(fig)
 
 # firma
 st.markdown("---")
