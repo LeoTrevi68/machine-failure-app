@@ -7,6 +7,9 @@ import plotly.graph_objects as go
 # cargar modelo
 model = joblib.load('model.pkl')
 
+# Cargar base de datos
+df = pd.read_csv('data.csv')
+
 # límites operativos (basados en condiciones sin falla)
 limits = {
     'Torque [Nm]': (23.6, 54.8),
@@ -63,8 +66,8 @@ if st.button("Predict"):
     # -----------------------------
     st.markdown("### Torque Control Chart (SPC)")
 
-    # datos simulados
-    torque_data = np.random.normal(loc=40, scale=5, size=50)
+    # datos muestra 100 del original
+    torque_data = df[df['Machine failure'] == 0]['Torque [Nm]'].sample(100, random_state=42)
 
     lower, upper = limits['Torque [Nm]']
 
