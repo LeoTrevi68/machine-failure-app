@@ -61,18 +61,39 @@ if st.button("Predict"):
     else:
         st.error("High Risk – Immediate attention recommended")
 
-    # -----------------------------
-    # SPC: Torque Control Chart
-    # -----------------------------
-    st.markdown("### Torque Control Chart (SPC)")
+   # -----------------------------
+# SPC: All Variables
+# -----------------------------
+st.markdown("### SPC Monitoring (All Variables)")
 
-    # datos muestra 100 del original
-    torque_data = df[df['Machine failure'] == 0]['Torque [Nm]'].sample(100, random_state=42)
+variables = [
+    'Torque [Nm]',
+    'Tool wear [min]',
+    'Air temperature [K]',
+    'Process temperature [K]',
+    'Rotational speed [rpm]'
+]
 
-    lower, upper = limits['Torque [Nm]']
+current_values = {
+    'Torque [Nm]': torque,
+    'Tool wear [min]': tool_wear,
+    'Air temperature [K]': air_temp,
+    'Process temperature [K]': process_temp,
+    'Rotational speed [rpm]': rpm
+}
 
-    # color del punto según condición
-    if torque < lower or torque > upper:
+for var in variables:
+
+    st.markdown(f"#### {var}")
+
+    # datos reales sin falla
+    data = df[df['Machine failure'] == 0][var].sample(100, random_state=42)
+
+    lower, upper = limits[var]
+
+    # color del punto actual
+    current = current_values[var]
+    if current < lower or current > upper:
         point_color = "red"
     else:
         point_color = "green"
@@ -81,22 +102,21 @@ if st.button("Predict"):
 
     # datos históricos
     fig.add_trace(go.Scatter(
-        y=torque_data,
+        y=data,
         mode='lines+markers',
         name='Historical Data'
     ))
 
-    # límite superior
+    # límites
     fig.add_trace(go.Scatter(
-        y=[upper]*len(torque_data),
+        y=[upper]*len(data),
         mode='lines',
         name='Upper Limit',
         line=dict(dash='dash')
     ))
 
-    # límite inferior
     fig.add_trace(go.Scatter(
-        y=[lower]*len(torque_data),
+        y=[lower]*len(data),
         mode='lines',
         name='Lower Limit',
         line=dict(dash='dash')
@@ -104,17 +124,18 @@ if st.button("Predict"):
 
     # punto actual
     fig.add_trace(go.Scatter(
-        y=[torque],
-        x=[len(torque_data)],
+        y=[current],
+        x=[len(data)],
         mode='markers',
         name='Current Value',
         marker=dict(size=12, color=point_color)
     ))
 
     fig.update_layout(
-        title="Torque SPC Monitoring",
+        title=f"{var} Control Chart",
         xaxis_title="Sample",
-        yaxis_title="Torque [Nm]"
+        yaxis_title=var,
+        height=300
     )
 
     st.plotly_chart(fig)
