@@ -136,7 +136,9 @@ This solution enables:
 
 https://machine-failure-app-hknetvsaowxeh4xbmffbov.streamlit.app/
 
----
+## Application Preview
+
+![App Screenshot](app_screenshot.png)
 
 ## Author
 
