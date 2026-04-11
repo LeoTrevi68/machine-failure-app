@@ -134,7 +134,7 @@ This solution enables:
 
 ## Live Application
 
-[Insert your Streamlit app link here]
+https://machine-failure-app-hknetvsaowxeh4xbmffbov.streamlit.app/
 
 ---
 
